@@ -35,7 +35,7 @@ import android.util.Log;
 import android.text.TextUtils;
 
 /** AzureSpeechRecognitionPlugin */
-public class AzureSpeechRecognitionPlugin(activity:Activity,channel:MethodChannel): FlutterPlugin,Activity(),MethodCallHandler {
+public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -60,17 +60,13 @@ public class AzureSpeechRecognitionPlugin(activity:Activity,channel:MethodChanne
     
   }
 
-  companion object {
-    @JvmStatic
+  init{
     fun registerWith(registrar: Registrar) {
       val channel = MethodChannel(registrar.messenger(), "azure_speech_recognition")
-      channel.setMethodCallHandler(AzureSpeechRecognitionPlugin(registrar.activity(),channel))
-    }
-  }
 
-  init{
-    this.azureChannel = channel;
-    this.azureChannel.setMethodCallHandler(this);
+      this.azureChannel = MethodChannel(registrar.messenger(), "azure_speech_recognition");
+      this.azureChannel.setMethodCallHandler(this);
+    }
 
     handler = Handler(Looper.getMainLooper());
   }
