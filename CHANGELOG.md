@@ -1,3 +1,8 @@
+## 0.8.2
+
+- BugFix
+- Support continuous recognition
+
 ## 0.8.0
 
 # Breaking changes:

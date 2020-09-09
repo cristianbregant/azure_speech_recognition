@@ -297,6 +297,8 @@ public class AzureSpeechRecognitionPlugin(activity:Activity,channel:MethodChanne
   
       val task : Future<Void> = reco.startContinuousRecognitionAsync();
 
+      
+
 
       setOnTaskCompletedListener(task, { result ->
         continuousListeningStarted = true;

@@ -98,8 +98,7 @@ class AzureSpeechRecognition {
       startRecognitionHandler = handler;
 
   /// only for continuosly
-  void setStopHandler(VoidCallback handler) =>
-    stopRecognitionHandler = handler;
+  void setStopHandler(VoidCallback handler) => stopRecognitionHandler = handler;
 
   /// Simple voice Recognition, the result will be sent only at the end.
   /// Return the text obtained or the error catched
@@ -125,19 +124,17 @@ class AzureSpeechRecognition {
     }
   }
 
-  /// Speech recognition that doesnt stop recording text until you stopped it
+  /// Speech recognition that doesnt stop recording text until you stopped it by calling again this function
   /// Return the text obtained or the error catched
-  ///
+
   static continuousRecording() {
-    if(_subKey != null && _region != null){
-       _channel.invokeMethod('continuousStream',
+    if (_subKey != null && _region != null) {
+      _channel.invokeMethod('continuousStream',
           {'language': _lang, 'subscriptionKey': _subKey, 'region': _region});
     } else {
-       throw "Error: SpeechRecognitionParameters not initialized correctly";
+      throw "Error: SpeechRecognitionParameters not initialized correctly";
     }
   }
-
-
 
   /// Intent recognition
   /// Return the intent obtained or the error catched
@@ -161,12 +158,12 @@ class AzureSpeechRecognition {
   /// [kwsModelName] name of the file in the asset folder that contains the keywords
   /// Return the speech obtained or the error catched
 
-  /*static speechRecognizerWithKeyword(String kwsModelName) {
+  static speechRecognizerWithKeyword(String kwsModelName) {
    if(_subKey != null && _region != null){
     _channel.invokeMethod('keywordRecognizer',{'language': _lang, 'subscriptionKey': _subKey, 'region': _region,'kwsModel': kwsModelName});
    }else{
     throw "Error: SpeechRecognitionParameters not initialized correctly";
    }
-  }*/
+  }
 
 }

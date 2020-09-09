@@ -13,7 +13,7 @@ To use this plugin you must have already create an account on the cognitive serv
 To install the package use the latest:
 
 ```dart
-azure_speech_recognition: ^0.8.0
+azure_speech_recognition: ^0.8.2
 ```
 
 ## Usage
@@ -79,40 +79,6 @@ void activateSpeechRecognizer(){
 Future recognizeVoice() async {
     try {
       AzureSpeechRecognition.simpleVoiceRecognition();
-    } on PlatformException catch (e) {
-      print("Failed start the recognition: '${e.message}'.");
-    }
-  }
-```
-
-### Voice recognition with microphone streaming
-It returns in the recognitionResultHandler the temporary phrases that it understand and at the end the final response is returned by the setFinalTranscription method.
-
-```dart
-
-void activateSpeechRecognizer(){
-    // MANDATORY INITIALIZATION
-  AzureSpeechRecognition.initialize(subKey, region,lang: lang);
-  
-  _speechAzure.setFinalTranscription((text) {
-    // do what you want with your final transcription
-  });
-
-  _speechAzure.setRecognitionResultHandler((text) {
-    // do what you want with your partial transcription (this one is called every time a word is recognized)
-    // if you have a string that is displayed you could call here setState() to updated with the partial result
-  });
-
-  _speechAzure.setRecognitionStartedHandler(() {
-   // called at the start of recognition (it could also not be used)
-  });
-
-}
-
-
-Future recognizeVoiceMicStreaming() async {
-    try {
-      AzureSpeechRecognition.micStream();
     } on PlatformException catch (e) {
       print("Failed start the recognition: '${e.message}'.");
     }
