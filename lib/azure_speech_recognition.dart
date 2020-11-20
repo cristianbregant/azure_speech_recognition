@@ -50,7 +50,7 @@ class AzureSpeechRecognition {
   StringResultHandler finalTranscriptionHandler;
   VoidCallback recognitionStartedHandler;
   VoidCallback startRecognitionHandler;
-  VoidCallback stopRecognitionHandler;
+  VoidCallback recognitionStoppedHandler;
 
   Future _platformCallHandler(MethodCall call) async {
     switch (call.method) {
@@ -64,13 +64,13 @@ class AzureSpeechRecognition {
         finalTranscriptionHandler(call.arguments);
         break;
       case "speech.onStartAvailable":
-        setStartHandler(call.arguments);
+        startRecognitionHandler();
         break;
-      case "speech.onStopAvailable":
-        setStopHandler(call.arguments);
+      case "speech.onRecognitionStopped":
+        recognitionStoppedHandler();
         break;
       case "speech.onException":
-        onExceptionHandler(call.arguments);
+        exceptionHandler(call.arguments);
         break;
       default:
         print("Error: method called not found");
@@ -98,7 +98,8 @@ class AzureSpeechRecognition {
       startRecognitionHandler = handler;
 
   /// only for continuosly
-  void setStopHandler(VoidCallback handler) => stopRecognitionHandler = handler;
+  void setRecognitionStoppedHandler(VoidCallback handler) =>
+      recognitionStoppedHandler = handler;
 
   /// Simple voice Recognition, the result will be sent only at the end.
   /// Return the text obtained or the error catched
@@ -136,6 +137,15 @@ class AzureSpeechRecognition {
     }
   }
 
+  static dictationMode() {
+    if (_subKey != null && _region != null) {
+      _channel.invokeMethod('dictationMode',
+          {'language': _lang, 'subscriptionKey': _subKey, 'region': _region});
+    } else {
+      throw "Error: SpeechRecognitionParameters not initialized correctly";
+    }
+  }
+
   /// Intent recognition
   /// Return the intent obtained or the error catched
 
@@ -159,11 +169,15 @@ class AzureSpeechRecognition {
   /// Return the speech obtained or the error catched
 
   static speechRecognizerWithKeyword(String kwsModelName) {
-   if(_subKey != null && _region != null){
-    _channel.invokeMethod('keywordRecognizer',{'language': _lang, 'subscriptionKey': _subKey, 'region': _region,'kwsModel': kwsModelName});
-   }else{
-    throw "Error: SpeechRecognitionParameters not initialized correctly";
-   }
+    if (_subKey != null && _region != null) {
+      _channel.invokeMethod('keywordRecognizer', {
+        'language': _lang,
+        'subscriptionKey': _subKey,
+        'region': _region,
+        'kwsModel': kwsModelName
+      });
+    } else {
+      throw "Error: SpeechRecognitionParameters not initialized correctly";
+    }
   }
-
 }

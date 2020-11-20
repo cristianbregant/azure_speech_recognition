@@ -44,6 +44,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.microsoft.cognitiveservices.speech:client-sdk:1.7.0'
+    implementation 'com.microsoft.cognitiveservices.speech:client-sdk:1.13.0'
 
 }

@@ -34,6 +34,9 @@ import java.net.URI;
 import android.util.Log;
 import android.text.TextUtils;
 
+import java.util.concurrent.Semaphore 
+
+
 /** AzureSpeechRecognitionPlugin */
 public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
@@ -43,7 +46,9 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
   private lateinit var azureChannel : MethodChannel;
   private var microphoneStream : MicrophoneStream? = null;
   private  lateinit var handler : Handler;
-
+  var continuousListeningStarted : Boolean = false;
+  lateinit var  reco : SpeechRecognizer;
+  var enableDictation : Boolean = false;
   private fun createMicrophoneStream() : MicrophoneStream{
     if (microphoneStream != null) {
         microphoneStream!!.close();
@@ -71,8 +76,25 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
     handler = Handler(Looper.getMainLooper());
   }
 
+  /*companion object {
+    @JvmStatic
+    fun registerWith(registrar: Registrar) {
+      val channel = MethodChannel(registrar.messenger(), "azure_speech_recognition")
+      channel.setMethodCallHandler(AzureSpeechRecognitionPlugin(registrar.activity(),channel))
+    }
+  }
 
-  
+  init{
+    this.azureChannel = channel;
+    this.azureChannel.setMethodCallHandler(this);
+
+    handler = Handler(Looper.getMainLooper());
+  }*/
+
+
+  fun getAudioConfig() : AudioConfig {
+    return AudioConfig.fromDefaultMicrophoneInput();
+  }
 
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -106,7 +128,18 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
       micStreamContinuosly(speechSubscriptionKey,serviceRegion,lang);
       result.success(true);
 
-    }else if(call.method == "intentRecognizer"){
+    }else if(call.method == "dictationMode"){
+      var permissionRequestId : Int = 5;
+      var speechSubscriptionKey : String = ""+call.argument("subscriptionKey");
+      var serviceRegion : String= ""+call.argument("region");
+      var lang : String =  ""+call.argument("language");
+
+      enableDictation = true;
+      micStreamContinuosly(speechSubscriptionKey,serviceRegion,lang);
+      result.success(true);
+
+    }
+    else if(call.method == "intentRecognizer"){
       var permissionRequestId : Int = 5;
       var speechSubscriptionKey : String = ""+call.argument("subscriptionKey");
       var serviceRegion : String= ""+call.argument("region");
@@ -231,26 +264,29 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
 
   fun micStreamContinuosly(speechSubscriptionKey:String,serviceRegion:String,lang:String){
     val logTag : String = "micStreamContinuos";
-    var continuousListeningStarted : Boolean = false;
-    lateinit var  reco : SpeechRecognizer;
+    
+    
     lateinit var  audioInput : AudioConfig;
     var content :  ArrayList<String> = ArrayList<String>();
 
 
+    Log.i(logTag, "StatoRiconoscimentoVocale: " + continuousListeningStarted);
 
     if(continuousListeningStarted){
       if(reco != null){
-        val task : Future<Void> = reco.stopContinuousRecognitionAsync();
+        val _task1  = reco.stopContinuousRecognitionAsync();
 
-        setOnTaskCompletedListener(task, { result ->
+        setOnTaskCompletedListener(_task1, { result ->
           Log.i(logTag, "Continuous recognition stopped.");
           continuousListeningStarted = false;
-          azureChannel.invokeMethod("speech.onStartAvailable",null);
-        })
+          invokeMethod("speech.onRecognitionStopped",null);
+                reco.close();
 
+        })
       }else{
         continuousListeningStarted = false;
       }
+      
 
       return;
     }
@@ -259,7 +295,7 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
 
     try{
       
-      audioInput = AudioConfig.fromStreamInput(createMicrophoneStream());
+      //audioInput = AudioConfig.fromStreamInput(createMicrophoneStream());
 
 
       var config : SpeechConfig = SpeechConfig.fromSubscription(speechSubscriptionKey, serviceRegion); 
@@ -267,42 +303,45 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
 
       config.speechRecognitionLanguage = lang;
 
-      reco = SpeechRecognizer(config,audioInput);
+      if(enableDictation){
+        Log.i(logTag, "Enabled BF dictation");
+        config.enableDictation();
+        Log.i(logTag, "Enabled AF dictation");
+
+      }
+
+      reco = SpeechRecognizer(config,getAudioConfig());
 
       assert(reco != null);
 
-      invokeMethod("speech.onRecognitionStarted",null);
 
       
 
       reco.recognizing.addEventListener({ o, speechRecognitionResultEventArgs->
         val s = speechRecognitionResultEventArgs.getResult().getText()
         content.add(s);
-        Log.i(logTag, "Intermediate result received: " + s)
-        invokeMethod("speech.onSpeech",TextUtils.join(" ", content));
+        //Log.i(logTag, "Intermediate result received: " + s)
+        invokeMethod("speech.onSpeech",s);
         content.removeAt(content.size - 1);
       });
 
       reco.recognizing.addEventListener({ o, speechRecognitionResultEventArgs->
         val s = speechRecognitionResultEventArgs.getResult().getText()
         content.add(s);
-        Log.i(logTag, "Final result received: " + s)
+        //Log.i(logTag, "Final result received: " + s)
         invokeMethod("speech.onFinalResponse",s);
       });
       
   
-      val task : Future<Void> = reco.startContinuousRecognitionAsync();
+      val _task2 = reco.startContinuousRecognitionAsync();
 
-      
-
-
-      setOnTaskCompletedListener(task, { result ->
+      setOnTaskCompletedListener(_task2, { result ->
         continuousListeningStarted = true;
+        invokeMethod("speech.onRecognitionStarted",null);
 
-        invokeMethod("speech.onStopAvailable",null);
-        println("Stopped");
+        //invokeMethod("speech.onStopAvailable",null);
       })
-      //return "ok";
+      
 
     }catch(exec:Exception){
       assert(false);
