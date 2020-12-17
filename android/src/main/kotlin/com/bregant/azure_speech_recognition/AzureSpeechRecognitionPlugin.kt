@@ -274,7 +274,7 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
 
     if(continuousListeningStarted){
       if(reco != null){
-        val _task1  = reco.stopContinuousRecognitionAsync().get();
+        val _task1  = reco.stopContinuousRecognitionAsync();
 
         setOnTaskCompletedListener(_task1, { result ->
           Log.i(logTag, "Continuous recognition stopped.");
@@ -329,11 +329,11 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
         val s = speechRecognitionResultEventArgs.getResult().getText()
         content.add(s);
         Log.i(logTag, "Final result received: " + s)
-        invokeMethod("speech.onFinalResponse",content.joinToString(separator = " "));
+        invokeMethod("speech.onFinalResponse",content.joinToString(separator = " " ));
       });
       
   
-      val _task2 = reco.startContinuousRecognitionAsync().get();
+      val _task2 = reco.startContinuousRecognitionAsync();
 
       setOnTaskCompletedListener(_task2, { result ->
         continuousListeningStarted = true;
