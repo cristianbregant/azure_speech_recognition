@@ -329,7 +329,7 @@ public class AzureSpeechRecognitionPlugin(): FlutterPlugin,Activity(),MethodCall
         val s = speechRecognitionResultEventArgs.getResult().getText()
         content.add(s);
         Log.i(logTag, "Final result received: " + s)
-        invokeMethod("speech.onFinalResponse",content.joinToString(separator = " " ));
+        invokeMethod("speech.onFinalResponse",s);
       });
       
   
